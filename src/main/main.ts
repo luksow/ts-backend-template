@@ -14,12 +14,16 @@ import { makeHealthCheckService } from '../healthcheck/services';
 import config from '../resources/config';
 import { makeRoadmapRouter, roadmapApi } from '../roadmap/routers';
 import { makeRoadmapService } from '../roadmap/services';
+import { Transactor, makeTransactor } from '../utils/db/transactor';
 import { TracingContext, makeErrorHandler, makeRequestResponseLogger, makeTracingMiddleware } from '../utils/http/middleware';
 import { c, s } from '../utils/http/ts-rest';
 
 async function main() {
   const asyncLocalStorage = new AsyncLocalStorage<TracingContext>();
-  const pool: DatabasePool = await createPool(config.get('db'));
+  const pool: DatabasePool = await createPool(
+    `postgresql://${config.get('db.user')}:${config.get('db.password')}@${config.get('db.host')}:${config.get('db.port')}/${config.get('db.name')}`,
+  );
+  const transactor: Transactor = makeTransactor(pool);
   const logger: winston.Logger = winston.createLogger({
     format: winston.format.combine(
       winston.format.errors({ stack: true }),
@@ -50,7 +54,7 @@ async function main() {
   const firebaseConfig = config.get('firebase');
   const authenticator = makeAuthenticator(firebaseConfig, asyncLocalStorage);
 
-  const healthCheckService = makeHealthCheckService(pool, config.get('app'));
+  const healthCheckService = makeHealthCheckService(transactor, config.get('app'));
   const healthCheckRouter = makeHealthCheckRouter(authenticator, healthCheckService);
 
   const roadmapService = makeRoadmapService(logger);

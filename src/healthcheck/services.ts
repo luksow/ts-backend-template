@@ -1,5 +1,7 @@
-import { DatabasePool, sql } from 'slonik';
+import { sql } from 'slonik';
+
 import { AuthContext } from '../auth/domain';
+import { Transactor } from '../utils/db/transactor';
 import { DbHealthCheck, HealthCheck } from './domain';
 
 interface HealthCheckConfig {
@@ -13,7 +15,7 @@ export interface HealthCheckService {
   db: () => Promise<DbHealthCheck>;
 }
 
-export const makeHealthCheckService = (pool: DatabasePool, config: HealthCheckConfig): HealthCheckService => {
+export const makeHealthCheckService = (transactor: Transactor, config: HealthCheckConfig): HealthCheckService => {
   return {
     getHealthCheck: (authContext: AuthContext | undefined): HealthCheck => {
       return {
@@ -25,7 +27,9 @@ export const makeHealthCheckService = (pool: DatabasePool, config: HealthCheckCo
     },
     db: async (): Promise<DbHealthCheck> => {
       const start = Date.now();
-      await pool.query(sql.unsafe`SELECT 1`);
+      await transactor.withConnection((connection) => {
+        return connection.query(sql.unsafe`SELECT 1`);
+      });
       const latency = Date.now() - start;
       return {
         latency,
