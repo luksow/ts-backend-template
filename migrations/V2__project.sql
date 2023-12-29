@@ -1,4 +1,4 @@
-CREATE TABLE roadmap (
+CREATE TABLE project (
     id UUID PRIMARY KEY,
     user_id TEXT NOT NULL,
     name TEXT NOT NULL,

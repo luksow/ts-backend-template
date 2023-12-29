@@ -3,44 +3,44 @@ import { z } from 'zod';
 import { Authenticator } from '../auth/authenticator';
 import { ErrorResponse } from '../utils/http/middleware';
 import { baseAuthenticatedApi, c, s } from '../utils/http/ts-rest';
-import { Roadmap, RoadmapId } from './domain';
-import { CreateRoadmapRequest, UpdateRoadmapRequest } from './dtos';
-import { RoadmapService } from './services';
+import { Project, ProjectId } from './domain';
+import { CreateProjectRequest, UpdateProjectRequest } from './dtos';
+import { ProjectService } from './services';
 
-export const roadmapApi = c.router(
+export const projectApi = c.router(
   {
-    createRoadmap: {
+    createProject: {
       method: 'POST',
-      path: '/roadmaps',
-      body: CreateRoadmapRequest,
+      path: '/projects',
+      body: CreateProjectRequest,
       responses: {
-        201: Roadmap,
+        201: Project,
         409: ErrorResponse,
         401: ErrorResponse,
       },
     },
-    listRoadmaps: {
+    listProjects: {
       method: 'GET',
-      path: '/roadmaps',
+      path: '/projects',
       responses: {
-        200: z.array(Roadmap),
+        200: z.array(Project),
         401: ErrorResponse,
       },
     },
-    findRoadmap: {
+    findProject: {
       method: 'GET',
-      path: '/roadmaps/:id',
+      path: '/projects/:id',
       responses: {
-        200: Roadmap,
+        200: Project,
         404: ErrorResponse,
       },
     },
-    updateRoadmap: {
+    updateProject: {
       method: 'PATCH',
-      path: '/roadmaps/:id',
-      body: UpdateRoadmapRequest,
+      path: '/projects/:id',
+      body: UpdateProjectRequest,
       responses: {
-        200: Roadmap,
+        200: Project,
         404: ErrorResponse,
         409: ErrorResponse,
       },
@@ -49,65 +49,65 @@ export const roadmapApi = c.router(
   { ...baseAuthenticatedApi, strictStatusCodes: true },
 );
 
-export const makeRoadmapRouter = (roadmapService: RoadmapService, authenticator: Authenticator) => {
-  return s.router(roadmapApi, {
-    createRoadmap: async (req) => {
+export const makeProjectRouter = (projectService: ProjectService, authenticator: Authenticator) => {
+  return s.router(projectApi, {
+    createProject: async (req) => {
       const authContext = await authenticator.authenticateOrThrow(req);
-      const response = await roadmapService.insert(authContext, req.body);
+      const response = await projectService.insert(authContext, req.body);
       switch (response.status) {
         case 'Created':
           return {
             status: 201,
-            body: response.roadmap,
+            body: response.project,
           };
         case 'AlreadyExists':
           return {
             status: 409,
-            body: { message: 'Roadmap already exists' },
+            body: { message: 'Project already exists' },
           };
       }
     },
-    listRoadmaps: async (req) => {
+    listProjects: async (req) => {
       const authContext = await authenticator.authenticateOrThrow(req);
       return {
         status: 200,
-        body: [...(await roadmapService.list(authContext))],
+        body: [...(await projectService.list(authContext))],
       };
     },
-    findRoadmap: async (req) => {
+    findProject: async (req) => {
       const authContext = await authenticator.authenticateOrThrow(req);
-      const id = RoadmapId.parse(req.params.id);
-      const maybeRoadmap = await roadmapService.find(authContext, id);
-      if (maybeRoadmap === undefined) {
+      const id = ProjectId.parse(req.params.id);
+      const maybeProject = await projectService.find(authContext, id);
+      if (maybeProject === undefined) {
         return {
           status: 404,
-          body: { message: 'Roadmap not found' },
+          body: { message: 'Project not found' },
         };
       }
       return {
         status: 200,
-        body: maybeRoadmap,
+        body: maybeProject,
       };
     },
-    updateRoadmap: async (req) => {
+    updateProject: async (req) => {
       const authContext = await authenticator.authenticateOrThrow(req);
-      const id = RoadmapId.parse(req.params.id);
-      const response = await roadmapService.update(authContext, id, req.body);
+      const id = ProjectId.parse(req.params.id);
+      const response = await projectService.update(authContext, id, req.body);
       switch (response.status) {
         case 'Updated':
           return {
             status: 200,
-            body: response.roadmap,
+            body: response.project,
           };
         case 'NotFound':
           return {
             status: 404,
-            body: { message: 'Roadmap not found' },
+            body: { message: 'Project not found' },
           };
         case 'AlreadyExists':
           return {
             status: 409,
-            body: { message: 'Roadmap already exists' },
+            body: { message: 'Project already exists' },
           };
       }
     },

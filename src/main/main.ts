@@ -11,10 +11,10 @@ import winston from 'winston';
 import { makeAuthenticator } from '../auth/authenticator';
 import { healthCheckApi, makeHealthCheckRouter } from '../healthcheck/routers';
 import { makeHealthCheckService } from '../healthcheck/services';
+import { makeProjectRepository } from '../project/repository';
+import { makeProjectRouter, projectApi } from '../project/routers';
+import { makeProjectService } from '../project/services';
 import config from '../resources/config';
-import { makeRoadmapRepository } from '../roadmap/repository';
-import { makeRoadmapRouter, roadmapApi } from '../roadmap/routers';
-import { makeRoadmapService } from '../roadmap/services';
 import { createResultParserInterceptor } from '../utils/db/sql';
 import { Transactor, makeTransactor } from '../utils/db/transactor';
 import { TracingContext, makeErrorHandler, makeRequestResponseLogger, makeTracingMiddleware } from '../utils/http/middleware';
@@ -60,14 +60,14 @@ async function main() {
   const healthCheckService = makeHealthCheckService(transactor, config.get('app'));
   const healthCheckRouter = makeHealthCheckRouter(authenticator, healthCheckService);
 
-  const roadmapRepository = makeRoadmapRepository();
-  const roadmapService = makeRoadmapService(roadmapRepository, transactor, logger);
-  const roadmapRouter = makeRoadmapRouter(roadmapService, authenticator);
+  const projectRepository = makeProjectRepository();
+  const projectService = makeProjectService(projectRepository, transactor, logger);
+  const projectRouter = makeProjectRouter(projectService, authenticator);
 
   const api = c.router(
     {
       health: healthCheckApi,
-      roadmap: roadmapApi,
+      project: projectApi,
     },
     {
       ...apiOptions,
@@ -76,7 +76,7 @@ async function main() {
 
   const router = s.router(api, {
     health: healthCheckRouter,
-    roadmap: roadmapRouter,
+    project: projectRouter,
   });
 
   const openApiDocument = generateOpenApi(api, {

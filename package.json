@@ -9,7 +9,7 @@
     "build": "esbuild src/main/main.ts --bundle --packages=external --platform=node --format=esm --outdir=dist --sourcemap",
     "lint": "eslint --cache --ext \".js,.ts,.tsx\" --report-unused-disable-directives src",
     "start": "yarn dev",
-    "migrate": "flyway -url=jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME -user=$DB_USER -password=$DB_PASSWORD -locations=src/resources/migrations migrate"
+    "migrate": "flyway -url=jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME -user=$DB_USER -password=$DB_PASSWORD -locations=migrations migrate"
   },
   "dependencies": {
     "@ts-rest/core": "3.30.5",
