@@ -6,7 +6,6 @@ export const c = initContract();
 export const s = initServer();
 
 export const baseApi = {
-  strictStatusCodes: true,
   baseHeaders: z.object({
     authorization: z.string().optional(),
   }),

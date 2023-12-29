@@ -22,7 +22,7 @@ export const healthCheckApi = c.router(
       },
     },
   },
-  baseApi,
+  { ...baseApi, strictStatusCodes: true },
 );
 
 export const makeHealthCheckRouter = (authenticator: Authenticator, healthCheckService: HealthCheckService) => {

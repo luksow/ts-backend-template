@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import { ErrorRequestHandler } from 'express';
 import winston from 'winston';
 import { z } from 'zod';
+
 import { AuthenticationError } from '../../auth/authenticator';
 import { UserId } from '../../user/domain';
 
@@ -19,7 +20,7 @@ export type TracingContext = z.infer<typeof TracingContext>;
 
 export function makeErrorHandler(logger: winston.Logger) {
   const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
-    logger.error('Error while processing request', { error: err });
+    logger.error('Error while processing request ', err);
     if (err instanceof z.ZodError) res.status(400).json(err.message);
     else if (err instanceof AuthenticationError) res.status(401).json({ message: err.message });
     else if (err.statusCode) res.status(err.statusCode).json({ message: err.message });
